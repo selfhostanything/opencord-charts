@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "api") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "api") | nindent 4 }}
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "api") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "api") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "opencord.serviceAccountName" . }}
+      containers:
+        - name: api
+          image: {{ include "opencord.image" (dict "root" . "repository" .Values.api.image.repository) | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "opencord.fullname" . }}-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.external.urlSecretName | quote }}
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.external.urlSecretName | quote }}
+                  key: REDIS_URL
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}

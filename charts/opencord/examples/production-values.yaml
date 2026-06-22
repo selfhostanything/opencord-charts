@@ -1,0 +1,12 @@
+opencord:
+  publicUrl: "https://chat.example.com"
+  environment: "production"
+
+api:
+  replicaCount: 3
+
+realtime:
+  replicaCount: 3
+
+worker:
+  replicaCount: 2

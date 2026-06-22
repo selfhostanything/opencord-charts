@@ -1,0 +1,78 @@
+nameOverride: ""
+fullnameOverride: ""
+
+opencord:
+  publicUrl: "https://chat.example.com"
+  environment: "production"
+
+image:
+  registry: "ghcr.io/selfhostanything"
+  tag: "0.0.0-dev"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+
+api:
+  replicaCount: 2
+  image:
+    repository: "opencord-api"
+  containerPort: 8080
+  servicePort: 80
+  resources: {}
+
+realtime:
+  replicaCount: 2
+  image:
+    repository: "opencord-realtime"
+  containerPort: 8081
+  servicePort: 80
+  resources: {}
+
+worker:
+  replicaCount: 1
+  image:
+    repository: "opencord-worker"
+  resources: {}
+
+migrations:
+  enabled: false
+  image:
+    repository: "opencord-migrations"
+
+database:
+  image:
+    repository: "timescale/timescaledb"
+    tag: "2.28.0-pg18"
+  external:
+    enabled: true
+    urlSecretName: "opencord-database"
+
+redis:
+  external:
+    enabled: true
+    urlSecretName: "opencord-redis"
+
+objectStorage:
+  provider: "s3"
+  bucket: "opencord"
+  endpoint: ""
+  existingSecret: "opencord-s3"
+
+search:
+  url: ""
+
+livekit:
+  enabled: false
+  externalUrl: ""
+  existingSecret: "opencord-livekit"
+
+turn:
+  enabled: false
+  urls: []

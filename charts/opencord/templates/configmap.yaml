@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "opencord.fullname" . }}-config
+  labels:
+    {{- include "opencord.labels" . | nindent 4 }}
+data:
+  OPENCORD_PUBLIC_URL: {{ .Values.opencord.publicUrl | quote }}
+  OPENCORD_ENVIRONMENT: {{ .Values.opencord.environment | quote }}
+  S3_ENDPOINT: {{ .Values.objectStorage.endpoint | quote }}
+  SEARCH_URL: {{ .Values.search.url | quote }}

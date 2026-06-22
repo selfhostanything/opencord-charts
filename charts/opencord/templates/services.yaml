@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "api") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "api") | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.api.servicePort }}
+      targetPort: http
+  selector:
+    {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "api") | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "realtime") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "realtime") | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.realtime.servicePort }}
+      targetPort: http
+  selector:
+    {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "realtime") | nindent 4 }}

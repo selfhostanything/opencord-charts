@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["opencord", "image", "database", "redis"],
+  "properties": {
+    "opencord": {
+      "type": "object",
+      "required": ["publicUrl", "environment"],
+      "properties": {
+        "publicUrl": { "type": "string", "minLength": 1 },
+        "environment": { "type": "string", "minLength": 1 }
+      }
+    },
+    "image": {
+      "type": "object",
+      "required": ["registry", "tag"],
+      "properties": {
+        "registry": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string", "minLength": 1 },
+        "pullPolicy": { "type": "string" }
+      }
+    },
+    "database": {
+      "type": "object",
+      "required": ["image", "external"],
+      "properties": {
+        "image": {
+          "type": "object",
+          "required": ["repository", "tag"],
+          "properties": {
+            "repository": { "const": "timescale/timescaledb" },
+            "tag": { "const": "2.28.0-pg18" }
+          }
+        },
+        "external": {
+          "type": "object",
+          "required": ["enabled", "urlSecretName"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "urlSecretName": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "redis": {
+      "type": "object",
+      "required": ["external"],
+      "properties": {
+        "external": {
+          "type": "object",
+          "required": ["enabled", "urlSecretName"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "urlSecretName": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

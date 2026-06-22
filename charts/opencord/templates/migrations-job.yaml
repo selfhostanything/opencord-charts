@@ -1,0 +1,29 @@
+{{- if .Values.migrations.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "opencord.fullname" . }}-migrations
+  labels:
+    {{- include "opencord.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "opencord.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migrations
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "opencord.serviceAccountName" . }}
+      containers:
+        - name: migrations
+          image: {{ include "opencord.image" (dict "root" . "repository" .Values.migrations.image.repository) | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - migrate
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.external.urlSecretName | quote }}
+                  key: DATABASE_URL
+{{- end }}

@@ -1,0 +1,15 @@
+apiVersion: v2
+name: opencord
+description: OpenCord self-hosted server workloads
+type: application
+version: 0.1.0
+appVersion: "0.0.0-dev"
+home: https://github.com/selfhostanything/opencord-charts
+sources:
+  - https://github.com/selfhostanything/opencord-server
+  - https://github.com/selfhostanything/opencord-charts
+keywords:
+  - opencord
+  - chat
+  - self-hosted
+  - collaboration

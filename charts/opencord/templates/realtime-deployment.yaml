@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "realtime") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "realtime") | nindent 4 }}
+spec:
+  replicas: {{ .Values.realtime.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "realtime") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "realtime") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "opencord.serviceAccountName" . }}
+      containers:
+        - name: realtime
+          image: {{ include "opencord.image" (dict "root" . "repository" .Values.realtime.image.repository) | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.realtime.containerPort }}
+          env:
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.external.urlSecretName | quote }}
+                  key: REDIS_URL
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources:
+            {{- toYaml .Values.realtime.resources | nindent 12 }}
