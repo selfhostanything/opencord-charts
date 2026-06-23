@@ -65,8 +65,8 @@ assert("single-node chart must render bundled TimescaleDB StatefulSet") do
   names(single_node, "StatefulSet").include?("opencord-timescaledb")
 end
 
-assert("single-node chart must render bundled Redis StatefulSet") do
-  names(single_node, "StatefulSet").include?("opencord-redis")
+assert("single-node chart must render bundled Valkey StatefulSet") do
+  names(single_node, "StatefulSet").include?("opencord-valkey")
 end
 
 assert("single-node chart must pin TimescaleDB image to 2.28.0-pg18") do

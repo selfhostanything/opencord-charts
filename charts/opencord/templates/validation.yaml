@@ -4,9 +4,9 @@
 {{- if and (not .Values.database.external.enabled) (not .Values.database.bundled.enabled) -}}
 {{- fail "one database mode must be enabled: external or bundled" -}}
 {{- end -}}
-{{- if and .Values.redis.external.enabled .Values.redis.bundled.enabled -}}
-{{- fail "redis.external.enabled and redis.bundled.enabled cannot both be true" -}}
+{{- if and .Values.valkey.external.enabled .Values.valkey.bundled.enabled -}}
+{{- fail "valkey.external.enabled and valkey.bundled.enabled cannot both be true" -}}
 {{- end -}}
-{{- if and (not .Values.redis.external.enabled) (not .Values.redis.bundled.enabled) -}}
-{{- fail "one redis mode must be enabled: external or bundled" -}}
+{{- if and (not .Values.valkey.external.enabled) (not .Values.valkey.bundled.enabled) -}}
+{{- fail "one valkey mode must be enabled: external or bundled" -}}
 {{- end -}}

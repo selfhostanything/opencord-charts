@@ -51,10 +51,10 @@ database:
   bundled:
     enabled: false
 
-redis:
+valkey:
   external:
     enabled: true
-    urlSecretName: "opencord-redis"
+    urlSecretName: "opencord-valkey"
   bundled:
     enabled: false
 

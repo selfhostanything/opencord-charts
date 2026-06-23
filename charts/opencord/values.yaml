@@ -111,10 +111,10 @@ database:
       limits:
         memory: 1Gi
 
-redis:
+valkey:
   external:
     enabled: true
-    urlSecretName: "opencord-redis"
+    urlSecretName: "opencord-valkey"
   bundled:
     enabled: false
     image:

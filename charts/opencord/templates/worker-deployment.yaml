@@ -28,7 +28,7 @@ spec:
           {{- include "opencord.configEnvFrom" . | nindent 10 }}
           env:
             {{- include "opencord.databaseEnv" . | nindent 12 }}
-            {{- include "opencord.redisEnv" . | nindent 12 }}
+            {{- include "opencord.valkeyEnv" . | nindent 12 }}
             {{- include "opencord.objectStorageEnv" . | nindent 12 }}
             {{- include "opencord.appSecretEnv" . | nindent 12 }}
             {{- include "opencord.livekitEnv" . | nindent 12 }}

@@ -30,7 +30,7 @@ spec:
               containerPort: {{ .Values.realtime.containerPort }}
           {{- include "opencord.configEnvFrom" . | nindent 10 }}
           env:
-            {{- include "opencord.redisEnv" . | nindent 12 }}
+            {{- include "opencord.valkeyEnv" . | nindent 12 }}
             {{- include "opencord.appSecretEnv" . | nindent 12 }}
             {{- include "opencord.livekitEnv" . | nindent 12 }}
             {{- include "opencord.turnEnv" . | nindent 12 }}

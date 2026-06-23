@@ -56,10 +56,10 @@ database:
   bundled:
     enabled: false
 
-redis:
+valkey:
   external:
     enabled: true
-    urlSecretName: "opencord-vultr-redis"
+    urlSecretName: "opencord-vultr-valkey"
   bundled:
     enabled: false
 

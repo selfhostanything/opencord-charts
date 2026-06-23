@@ -92,13 +92,13 @@ Resolve the Kubernetes Secret that provides DATABASE_URL.
 {{- end }}
 
 {{/*
-Resolve the Kubernetes Secret that provides REDIS_URL.
+Resolve the Kubernetes Secret that provides VALKEY_URL.
 */}}
-{{- define "opencord.redisSecretName" -}}
-{{- if .Values.redis.external.enabled -}}
-{{- .Values.redis.external.urlSecretName -}}
+{{- define "opencord.valkeySecretName" -}}
+{{- if .Values.valkey.external.enabled -}}
+{{- .Values.valkey.external.urlSecretName -}}
 {{- else -}}
-{{- printf "%s-redis" (include "opencord.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-valkey" (include "opencord.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end }}
 
@@ -123,14 +123,14 @@ DATABASE_URL env entry.
 {{- end }}
 
 {{/*
-REDIS_URL env entry.
+VALKEY_URL env entry.
 */}}
-{{- define "opencord.redisEnv" -}}
-- name: REDIS_URL
+{{- define "opencord.valkeyEnv" -}}
+- name: VALKEY_URL
   valueFrom:
     secretKeyRef:
-      name: {{ include "opencord.redisSecretName" . | quote }}
-      key: REDIS_URL
+      name: {{ include "opencord.valkeySecretName" . | quote }}
+      key: VALKEY_URL
 {{- end }}
 
 {{/*

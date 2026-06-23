@@ -22,10 +22,10 @@ database:
       size: 20Gi
       storageClassName: ""
 
-redis:
+valkey:
   external:
     enabled: false
-    urlSecretName: "opencord-redis"
+    urlSecretName: "opencord-valkey"
   bundled:
     enabled: true
     persistence:

@@ -1,0 +1,67 @@
+{{- if and (not .Values.valkey.external.enabled) .Values.valkey.bundled.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "valkey") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "valkey") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: valkey
+      port: {{ .Values.valkey.bundled.servicePort }}
+      targetPort: valkey
+  selector:
+    {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "valkey") | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "valkey") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "valkey") | nindent 4 }}
+spec:
+  serviceName: {{ include "opencord.componentName" (dict "root" . "component" "valkey") }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "valkey") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "valkey") | nindent 8 }}
+    spec:
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: valkey
+          image: {{ printf "%s:%s" .Values.valkey.bundled.image.repository .Values.valkey.bundled.image.tag | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: valkey
+              containerPort: 6379
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            {{- toYaml .Values.valkey.bundled.resources | nindent 12 }}
+  {{- if .Values.valkey.bundled.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        {{- if .Values.valkey.bundled.persistence.storageClassName }}
+        storageClassName: {{ .Values.valkey.bundled.persistence.storageClassName | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.valkey.bundled.persistence.size | quote }}
+  {{- else }}
+      volumes:
+        - name: data
+          emptyDir: {}
+  {{- end }}
+{{- end }}
