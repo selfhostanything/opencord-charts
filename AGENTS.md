@@ -7,6 +7,9 @@ Rules for agents working in `opencord-charts`.
 - Run `scripts/validate-chart.sh` after chart changes.
 - Do not put secrets in values files.
 - Keep the bundled/evaluation database image pinned to `timescale/timescaledb:2.28.1-pg18-oss`.
+- Use readable version-number pins for images, charts, CI actions, and
+  dependencies. Do not pin them by image digest, commit SHA, or other hash-style
+  references unless a human explicitly approves a narrow exception.
 - Do not use Docker `latest` tags. Prefer major.minor tags that float patch
   updates where the image publishes them; use explicit release/date tags for
   images that do not publish stable major.minor tags.
