@@ -88,6 +88,17 @@ assert("single-node chart must pin TimescaleDB image to 2.28.1-pg18-oss") do
   end
 end
 
+%w[opencord-api opencord-realtime opencord-worker].each do |deployment_name|
+  assert("#{deployment_name} must render read-only root filesystems") do
+    containers = resource(default, "Deployment", deployment_name)
+      &.dig("spec", "template", "spec", "containers")
+
+    containers.is_a?(Array) && !containers.empty? && containers.all? do |container|
+      container.dig("securityContext", "readOnlyRootFilesystem") == true
+    end
+  end
+end
+
 assert("vultr chart must keep database external for self-hosted TimescaleDB") do
   names(vultr, "StatefulSet").none? { |name| name == "opencord-timescaledb" }
 end
