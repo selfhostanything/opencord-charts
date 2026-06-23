@@ -1,0 +1,29 @@
+{{- $root := . -}}
+{{- $components := list (dict "name" "api" "values" .Values.api) (dict "name" "realtime" "values" .Values.realtime) (dict "name" "worker" "values" .Values.worker) -}}
+{{- range $component := $components }}
+{{- if $component.values.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" $root "component" $component.name) }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" $root "component" $component.name) | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "opencord.componentName" (dict "root" $root "component" $component.name) }}
+  minReplicas: {{ $component.values.autoscaling.minReplicas }}
+  maxReplicas: {{ $component.values.autoscaling.maxReplicas }}
+  {{- if $component.values.autoscaling.targetCPUUtilizationPercentage }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $component.values.autoscaling.targetCPUUtilizationPercentage }}
+  {{- end }}
+{{- end }}
+{{- end }}

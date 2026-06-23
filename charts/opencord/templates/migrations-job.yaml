@@ -14,16 +14,16 @@ spec:
     spec:
       restartPolicy: OnFailure
       serviceAccountName: {{ include "opencord.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: migrations
           image: {{ include "opencord.image" (dict "root" . "repository" .Values.migrations.image.repository) | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           args:
             - migrate
           env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.database.external.urlSecretName | quote }}
-                  key: DATABASE_URL
+            {{- include "opencord.databaseEnv" . | nindent 12 }}
 {{- end }}

@@ -1,0 +1,12 @@
+{{- if and .Values.database.external.enabled .Values.database.bundled.enabled -}}
+{{- fail "database.external.enabled and database.bundled.enabled cannot both be true" -}}
+{{- end -}}
+{{- if and (not .Values.database.external.enabled) (not .Values.database.bundled.enabled) -}}
+{{- fail "one database mode must be enabled: external or bundled" -}}
+{{- end -}}
+{{- if and .Values.redis.external.enabled .Values.redis.bundled.enabled -}}
+{{- fail "redis.external.enabled and redis.bundled.enabled cannot both be true" -}}
+{{- end -}}
+{{- if and (not .Values.redis.external.enabled) (not .Values.redis.bundled.enabled) -}}
+{{- fail "one redis mode must be enabled: external or bundled" -}}
+{{- end -}}

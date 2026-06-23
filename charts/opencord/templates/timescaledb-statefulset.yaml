@@ -1,0 +1,77 @@
+{{- if and (not .Values.database.external.enabled) .Values.database.bundled.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "timescaledb") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "timescaledb") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: {{ .Values.database.bundled.servicePort }}
+      targetPort: postgres
+  selector:
+    {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "timescaledb") | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "timescaledb") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "timescaledb") | nindent 4 }}
+spec:
+  serviceName: {{ include "opencord.componentName" (dict "root" . "component" "timescaledb") }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "timescaledb") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "timescaledb") | nindent 8 }}
+    spec:
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: timescaledb
+          image: {{ printf "%s:%s" .Values.database.image.repository .Values.database.image.tag | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.database.bundled.auth.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.database.bundled.auth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "opencord.databaseSecretName" . | quote }}
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            {{- toYaml .Values.database.bundled.resources | nindent 12 }}
+  {{- if .Values.database.bundled.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        {{- if .Values.database.bundled.persistence.storageClassName }}
+        storageClassName: {{ .Values.database.bundled.persistence.storageClassName | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.database.bundled.persistence.size | quote }}
+  {{- else }}
+      volumes:
+        - name: data
+          emptyDir: {}
+  {{- end }}
+{{- end }}

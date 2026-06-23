@@ -5,7 +5,9 @@ metadata:
   labels:
     {{- include "opencord.componentLabels" (dict "root" . "component" "api") | nindent 4 }}
 spec:
+  {{- if not .Values.api.autoscaling.enabled }}
   replicas: {{ .Values.api.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "api") | nindent 6 }}
@@ -15,27 +17,25 @@ spec:
         {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "api") | nindent 8 }}
     spec:
       serviceAccountName: {{ include "opencord.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: api
           image: {{ include "opencord.image" (dict "root" . "repository" .Values.api.image.repository) | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           ports:
             - name: http
               containerPort: {{ .Values.api.containerPort }}
-          envFrom:
-            - configMapRef:
-                name: {{ include "opencord.fullname" . }}-config
+          {{- include "opencord.configEnvFrom" . | nindent 10 }}
           env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.database.external.urlSecretName | quote }}
-                  key: DATABASE_URL
-            - name: REDIS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.redis.external.urlSecretName | quote }}
-                  key: REDIS_URL
+            {{- include "opencord.databaseEnv" . | nindent 12 }}
+            {{- include "opencord.redisEnv" . | nindent 12 }}
+            {{- include "opencord.objectStorageEnv" . | nindent 12 }}
+            {{- include "opencord.appSecretEnv" . | nindent 12 }}
+            {{- include "opencord.livekitEnv" . | nindent 12 }}
+            {{- include "opencord.turnEnv" . | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /healthz

@@ -81,6 +81,141 @@ Build an image reference from registry, repository, and tag.
 {{- end }}
 
 {{/*
+Resolve the Kubernetes Secret that provides DATABASE_URL.
+*/}}
+{{- define "opencord.databaseSecretName" -}}
+{{- if .Values.database.external.enabled -}}
+{{- .Values.database.external.urlSecretName -}}
+{{- else -}}
+{{- printf "%s-database" (include "opencord.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Resolve the Kubernetes Secret that provides REDIS_URL.
+*/}}
+{{- define "opencord.redisSecretName" -}}
+{{- if .Values.redis.external.enabled -}}
+{{- .Values.redis.external.urlSecretName -}}
+{{- else -}}
+{{- printf "%s-redis" (include "opencord.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Common config map env source.
+*/}}
+{{- define "opencord.configEnvFrom" -}}
+envFrom:
+  - configMapRef:
+      name: {{ include "opencord.fullname" . }}-config
+{{- end }}
+
+{{/*
+DATABASE_URL env entry.
+*/}}
+{{- define "opencord.databaseEnv" -}}
+- name: DATABASE_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "opencord.databaseSecretName" . | quote }}
+      key: DATABASE_URL
+{{- end }}
+
+{{/*
+REDIS_URL env entry.
+*/}}
+{{- define "opencord.redisEnv" -}}
+- name: REDIS_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "opencord.redisSecretName" . | quote }}
+      key: REDIS_URL
+{{- end }}
+
+{{/*
+Object storage secret env entries.
+*/}}
+{{- define "opencord.objectStorageEnv" -}}
+{{- if .Values.objectStorage.existingSecret }}
+- name: S3_ACCESS_KEY_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.objectStorage.existingSecret | quote }}
+      key: {{ .Values.objectStorage.accessKeyIdKey | quote }}
+- name: S3_SECRET_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.objectStorage.existingSecret | quote }}
+      key: {{ .Values.objectStorage.secretAccessKeyKey | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
+Application secret env entries.
+*/}}
+{{- define "opencord.appSecretEnv" -}}
+{{- if .Values.appSecrets.existingSecret }}
+- name: SESSION_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.appSecrets.existingSecret | quote }}
+      key: {{ .Values.appSecrets.sessionSecretKey | quote }}
+      optional: true
+- name: SMTP_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.appSecrets.existingSecret | quote }}
+      key: {{ .Values.appSecrets.smtpUrlKey | quote }}
+      optional: true
+{{- end }}
+{{- end }}
+
+{{/*
+LiveKit secret env entries.
+*/}}
+{{- define "opencord.livekitEnv" -}}
+{{- if and .Values.livekit.enabled .Values.livekit.existingSecret }}
+- name: LIVEKIT_API_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.livekit.existingSecret | quote }}
+      key: {{ .Values.livekit.apiKeyKey | quote }}
+- name: LIVEKIT_API_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.livekit.existingSecret | quote }}
+      key: {{ .Values.livekit.apiSecretKey | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
+TURN secret env entries.
+*/}}
+{{- define "opencord.turnEnv" -}}
+{{- if and .Values.turn.enabled .Values.turn.existingSecret }}
+- name: TURN_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.turn.existingSecret | quote }}
+      key: {{ .Values.turn.usernameKey | quote }}
+      optional: true
+- name: TURN_CREDENTIAL
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.turn.existingSecret | quote }}
+      key: {{ .Values.turn.credentialKey | quote }}
+      optional: true
+- name: TURN_SHARED_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.turn.existingSecret | quote }}
+      key: {{ .Values.turn.sharedSecretKey | quote }}
+      optional: true
+{{- end }}
+{{- end }}
+
+{{/*
 Create the service account name.
 */}}
 {{- define "opencord.serviceAccountName" -}}

@@ -1,0 +1,67 @@
+{{- if and (not .Values.redis.external.enabled) .Values.redis.bundled.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "redis") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "redis") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: {{ .Values.redis.bundled.servicePort }}
+      targetPort: redis
+  selector:
+    {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "redis") | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "opencord.componentName" (dict "root" . "component" "redis") }}
+  labels:
+    {{- include "opencord.componentLabels" (dict "root" . "component" "redis") | nindent 4 }}
+spec:
+  serviceName: {{ include "opencord.componentName" (dict "root" . "component" "redis") }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "redis") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "redis") | nindent 8 }}
+    spec:
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: redis
+          image: {{ printf "%s:%s" .Values.redis.bundled.image.repository .Values.redis.bundled.image.tag | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            {{- toYaml .Values.redis.bundled.resources | nindent 12 }}
+  {{- if .Values.redis.bundled.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        {{- if .Values.redis.bundled.persistence.storageClassName }}
+        storageClassName: {{ .Values.redis.bundled.persistence.storageClassName | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.redis.bundled.persistence.size | quote }}
+  {{- else }}
+      volumes:
+        - name: data
+          emptyDir: {}
+  {{- end }}
+{{- end }}

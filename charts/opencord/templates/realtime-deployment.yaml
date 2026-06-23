@@ -5,7 +5,9 @@ metadata:
   labels:
     {{- include "opencord.componentLabels" (dict "root" . "component" "realtime") | nindent 4 }}
 spec:
+  {{- if not .Values.realtime.autoscaling.enabled }}
   replicas: {{ .Values.realtime.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "realtime") | nindent 6 }}
@@ -15,19 +17,23 @@ spec:
         {{- include "opencord.componentSelectorLabels" (dict "root" . "component" "realtime") | nindent 8 }}
     spec:
       serviceAccountName: {{ include "opencord.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: realtime
           image: {{ include "opencord.image" (dict "root" . "repository" .Values.realtime.image.repository) | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           ports:
             - name: http
               containerPort: {{ .Values.realtime.containerPort }}
+          {{- include "opencord.configEnvFrom" . | nindent 10 }}
           env:
-            - name: REDIS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.redis.external.urlSecretName | quote }}
-                  key: REDIS_URL
+            {{- include "opencord.redisEnv" . | nindent 12 }}
+            {{- include "opencord.appSecretEnv" . | nindent 12 }}
+            {{- include "opencord.livekitEnv" . | nindent 12 }}
+            {{- include "opencord.turnEnv" . | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /healthz

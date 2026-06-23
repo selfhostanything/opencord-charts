@@ -5,7 +5,15 @@ metadata:
   labels:
     {{- include "opencord.labels" . | nindent 4 }}
 data:
+  OPENCORD_ENV: {{ .Values.opencord.environment | quote }}
   OPENCORD_PUBLIC_URL: {{ .Values.opencord.publicUrl | quote }}
   OPENCORD_ENVIRONMENT: {{ .Values.opencord.environment | quote }}
+  S3_BUCKET: {{ .Values.objectStorage.bucket | quote }}
   S3_ENDPOINT: {{ .Values.objectStorage.endpoint | quote }}
   SEARCH_URL: {{ .Values.search.url | quote }}
+  LIVEKIT_URL: {{ .Values.livekit.externalUrl | quote }}
+  TURN_URLS: {{ join "," .Values.turn.urls | quote }}
+  TURN_REALM: {{ .Values.turn.realm | quote }}
+  TURN_MODE: {{ .Values.turn.mode | quote }}
+  TURN_RELAY_PORT_MIN: {{ .Values.turn.relayPortRange.min | quote }}
+  TURN_RELAY_PORT_MAX: {{ .Values.turn.relayPortRange.max | quote }}

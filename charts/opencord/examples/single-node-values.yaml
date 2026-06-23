@@ -10,3 +10,51 @@ realtime:
 
 worker:
   replicaCount: 1
+
+database:
+  external:
+    enabled: false
+    urlSecretName: "opencord-database"
+  bundled:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClassName: ""
+
+redis:
+  external:
+    enabled: false
+    urlSecretName: "opencord-redis"
+  bundled:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClassName: ""
+
+objectStorage:
+  provider: "s3"
+  bucket: "opencord"
+  endpoint: ""
+  existingSecret: ""
+
+appSecrets:
+  existingSecret: ""
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: "chat.example.com"
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api
+        - path: /gateway
+          pathType: Prefix
+          service: realtime
+  tls:
+    - secretName: "opencord-chat-tls"
+      hosts:
+        - "chat.example.com"

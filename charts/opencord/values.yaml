@@ -19,13 +19,34 @@ serviceAccount:
 service:
   type: ClusterIP
 
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
 api:
   replicaCount: 2
   image:
     repository: "opencord-api"
   containerPort: 8080
   servicePort: 80
-  resources: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
 
 realtime:
   replicaCount: 2
@@ -33,13 +54,33 @@ realtime:
     repository: "opencord-realtime"
   containerPort: 8081
   servicePort: 80
-  resources: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
 
 worker:
   replicaCount: 1
   image:
     repository: "opencord-worker"
-  resources: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
 
 migrations:
   enabled: false
@@ -53,26 +94,91 @@ database:
   external:
     enabled: true
     urlSecretName: "opencord-database"
+  bundled:
+    enabled: false
+    servicePort: 5432
+    auth:
+      username: "opencord"
+      database: "opencord"
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClassName: ""
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
 
 redis:
   external:
     enabled: true
     urlSecretName: "opencord-redis"
+  bundled:
+    enabled: false
+    image:
+      repository: "valkey/valkey"
+      tag: "8.1-alpine"
+    servicePort: 6379
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClassName: ""
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
 
 objectStorage:
   provider: "s3"
   bucket: "opencord"
   endpoint: ""
   existingSecret: "opencord-s3"
+  accessKeyIdKey: "S3_ACCESS_KEY_ID"
+  secretAccessKeyKey: "S3_SECRET_ACCESS_KEY"
 
 search:
   url: ""
+
+appSecrets:
+  existingSecret: "opencord-app"
+  sessionSecretKey: "SESSION_SECRET"
+  smtpUrlKey: "SMTP_URL"
 
 livekit:
   enabled: false
   externalUrl: ""
   existingSecret: "opencord-livekit"
+  apiKeyKey: "LIVEKIT_API_KEY"
+  apiSecretKey: "LIVEKIT_API_SECRET"
 
 turn:
   enabled: false
+  mode: "external"
   urls: []
+  existingSecret: "opencord-turn"
+  realm: "chat.example.com"
+  usernameKey: "TURN_USERNAME"
+  credentialKey: "TURN_CREDENTIAL"
+  sharedSecretKey: "TURN_SHARED_SECRET"
+  relayPortRange:
+    min: 50000
+    max: 60000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: "chat.example.com"
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api
+        - path: /gateway
+          pathType: Prefix
+          service: realtime
+  tls: []

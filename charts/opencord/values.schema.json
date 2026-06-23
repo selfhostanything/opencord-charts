@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
   "type": "object",
-  "required": ["opencord", "image", "database", "redis"],
+  "required": ["opencord", "image", "database", "redis", "objectStorage"],
   "properties": {
     "opencord": {
       "type": "object",
@@ -13,16 +13,19 @@
     },
     "image": {
       "type": "object",
-      "required": ["registry", "tag"],
+      "required": ["registry", "tag", "pullPolicy"],
       "properties": {
         "registry": { "type": "string", "minLength": 1 },
         "tag": { "type": "string", "minLength": 1 },
-        "pullPolicy": { "type": "string" }
+        "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
       }
     },
+    "api": { "$ref": "#/definitions/workloadWithService" },
+    "realtime": { "$ref": "#/definitions/workloadWithService" },
+    "worker": { "$ref": "#/definitions/workload" },
     "database": {
       "type": "object",
-      "required": ["image", "external"],
+      "required": ["image", "external", "bundled"],
       "properties": {
         "image": {
           "type": "object",
@@ -32,28 +35,185 @@
             "tag": { "const": "2.28.0-pg18" }
           }
         },
-        "external": {
+        "external": { "$ref": "#/definitions/externalUrlSecret" },
+        "bundled": {
           "type": "object",
-          "required": ["enabled", "urlSecretName"],
+          "required": ["enabled", "servicePort", "auth", "persistence"],
           "properties": {
             "enabled": { "type": "boolean" },
-            "urlSecretName": { "type": "string", "minLength": 1 }
+            "servicePort": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "auth": {
+              "type": "object",
+              "required": ["username", "database"],
+              "properties": {
+                "username": { "type": "string", "minLength": 1 },
+                "database": { "type": "string", "minLength": 1 }
+              }
+            },
+            "persistence": { "$ref": "#/definitions/persistence" },
+            "resources": { "type": "object" }
           }
         }
       }
     },
     "redis": {
       "type": "object",
-      "required": ["external"],
+      "required": ["external", "bundled"],
       "properties": {
-        "external": {
+        "external": { "$ref": "#/definitions/externalUrlSecret" },
+        "bundled": {
           "type": "object",
-          "required": ["enabled", "urlSecretName"],
+          "required": ["enabled", "image", "servicePort", "persistence"],
           "properties": {
             "enabled": { "type": "boolean" },
-            "urlSecretName": { "type": "string", "minLength": 1 }
+            "image": {
+              "type": "object",
+              "required": ["repository", "tag"],
+              "properties": {
+                "repository": { "type": "string", "minLength": 1 },
+                "tag": { "type": "string", "minLength": 1 }
+              }
+            },
+            "servicePort": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "persistence": { "$ref": "#/definitions/persistence" },
+            "resources": { "type": "object" }
           }
         }
+      }
+    },
+    "objectStorage": {
+      "type": "object",
+      "required": ["provider", "bucket", "existingSecret"],
+      "properties": {
+        "provider": { "type": "string", "enum": ["s3"] },
+        "bucket": { "type": "string" },
+        "endpoint": { "type": "string" },
+        "existingSecret": { "type": "string" },
+        "accessKeyIdKey": { "type": "string", "minLength": 1 },
+        "secretAccessKeyKey": { "type": "string", "minLength": 1 }
+      }
+    },
+    "livekit": {
+      "type": "object",
+      "required": ["enabled", "externalUrl", "existingSecret"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "externalUrl": { "type": "string" },
+        "existingSecret": { "type": "string" },
+        "apiKeyKey": { "type": "string", "minLength": 1 },
+        "apiSecretKey": { "type": "string", "minLength": 1 }
+      }
+    },
+    "turn": {
+      "type": "object",
+      "required": ["enabled", "mode", "urls", "existingSecret", "realm", "relayPortRange"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "mode": { "type": "string", "enum": ["external", "bundled"] },
+        "urls": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "existingSecret": { "type": "string" },
+        "realm": { "type": "string" },
+        "relayPortRange": {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": {
+            "min": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "max": { "type": "integer", "minimum": 1, "maximum": 65535 }
+          }
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "required": ["enabled", "hosts", "tls"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "className": { "type": "string" },
+        "annotations": { "type": "object" },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["host", "paths"],
+            "properties": {
+              "host": { "type": "string", "minLength": 1 },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["path", "service"],
+                  "properties": {
+                    "path": { "type": "string", "minLength": 1 },
+                    "pathType": { "type": "string", "enum": ["Exact", "Prefix", "ImplementationSpecific"] },
+                    "service": { "type": "string", "enum": ["api", "realtime"] }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tls": { "type": "array" }
+      }
+    }
+  },
+  "definitions": {
+    "externalUrlSecret": {
+      "type": "object",
+      "required": ["enabled", "urlSecretName"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "urlSecretName": { "type": "string", "minLength": 1 }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "required": ["enabled", "size", "storageClassName"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "size": { "type": "string", "minLength": 1 },
+        "storageClassName": { "type": "string" }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "required": ["replicaCount", "image", "resources", "autoscaling"],
+      "properties": {
+        "replicaCount": { "type": "integer", "minimum": 0 },
+        "image": {
+          "type": "object",
+          "required": ["repository"],
+          "properties": {
+            "repository": { "type": "string", "minLength": 1 }
+          }
+        },
+        "resources": { "type": "object" },
+        "autoscaling": { "$ref": "#/definitions/autoscaling" }
+      }
+    },
+    "workloadWithService": {
+      "allOf": [
+        { "$ref": "#/definitions/workload" },
+        {
+          "type": "object",
+          "required": ["containerPort", "servicePort"],
+          "properties": {
+            "containerPort": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "servicePort": { "type": "integer", "minimum": 1, "maximum": 65535 }
+          }
+        }
+      ]
+    },
+    "autoscaling": {
+      "type": "object",
+      "required": ["enabled", "minReplicas", "maxReplicas", "targetCPUUtilizationPercentage"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "minReplicas": { "type": "integer", "minimum": 1 },
+        "maxReplicas": { "type": "integer", "minimum": 1 },
+        "targetCPUUtilizationPercentage": { "type": "integer", "minimum": 1, "maximum": 100 }
       }
     }
   }

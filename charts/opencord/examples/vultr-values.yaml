@@ -1,6 +1,11 @@
 opencord:
   publicUrl: "https://chat.example.com"
-  environment: "production"
+  environment: "vultr-production"
+
+image:
+  registry: "ghcr.io/selfhostanything"
+  tag: "0.0.0-dev"
+  pullPolicy: IfNotPresent
 
 api:
   replicaCount: 3
@@ -47,27 +52,27 @@ worker:
 database:
   external:
     enabled: true
-    urlSecretName: "opencord-database"
+    urlSecretName: "opencord-vultr-timescaledb"
   bundled:
     enabled: false
 
 redis:
   external:
     enabled: true
-    urlSecretName: "opencord-redis"
+    urlSecretName: "opencord-vultr-redis"
   bundled:
     enabled: false
 
 objectStorage:
   provider: "s3"
   bucket: "opencord-production"
-  endpoint: "https://s3.example.com"
-  existingSecret: "opencord-s3"
+  endpoint: "https://ewr1.vultrobjects.com"
+  existingSecret: "opencord-vultr-object-storage"
 
 livekit:
   enabled: true
   externalUrl: "https://livekit.chat.example.com"
-  existingSecret: "opencord-livekit"
+  existingSecret: "opencord-vultr-livekit"
 
 turn:
   enabled: true
@@ -76,8 +81,11 @@ turn:
     - "turn:turn.chat.example.com:3478?transport=udp"
     - "turn:turn.chat.example.com:3478?transport=tcp"
     - "turns:turn.chat.example.com:5349?transport=tcp"
-  existingSecret: "opencord-turn"
+  existingSecret: "opencord-vultr-turn"
   realm: "chat.example.com"
+  relayPortRange:
+    min: 50000
+    max: 60000
 
 ingress:
   enabled: true
