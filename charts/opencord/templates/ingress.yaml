@@ -13,9 +13,18 @@ spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className | quote }}
   {{- end }}
-  {{- with .Values.ingress.tls }}
+  {{- if or .Values.ingress.tls (and .Values.customDomains.enabled .Values.customDomains.tlsSecretName .Values.customDomains.hosts) }}
   tls:
+    {{- with .Values.ingress.tls }}
     {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if and .Values.customDomains.enabled .Values.customDomains.tlsSecretName .Values.customDomains.hosts }}
+    - secretName: {{ .Values.customDomains.tlsSecretName | quote }}
+      hosts:
+        {{- range .Values.customDomains.hosts }}
+        - {{ . | quote }}
+        {{- end }}
+    {{- end }}
   {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
@@ -32,5 +41,26 @@ spec:
                 port:
                   number: {{ $serviceValues.servicePort }}
           {{- end }}
+    {{- end }}
+    {{- if .Values.customDomains.enabled }}
+    {{- range .Values.customDomains.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "opencord.componentName" (dict "root" $ "component" "api") }}
+                port:
+                  number: {{ $.Values.api.servicePort }}
+          - path: /gateway
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "opencord.componentName" (dict "root" $ "component" "realtime") }}
+                port:
+                  number: {{ $.Values.realtime.servicePort }}
+    {{- end }}
     {{- end }}
 {{- end }}

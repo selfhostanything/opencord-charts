@@ -107,3 +107,9 @@ ingress:
     - secretName: "opencord-chat-tls"
       hosts:
         - "chat.example.com"
+
+customDomains:
+  enabled: true
+  hosts:
+    - "customer.example.com"
+  tlsSecretName: "opencord-custom-domains-tls"

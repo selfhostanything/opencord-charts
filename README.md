@@ -24,6 +24,7 @@ The `opencord` chart renders:
 - S3-compatible object storage wiring through an existing Kubernetes Secret.
 - LiveKit and TURN/coturn configuration through values and existing Secrets.
 - Ingress/TLS routing.
+- Optional custom-domain ingress hosts through `customDomains.hosts`.
 - HorizontalPodAutoscaler resources for API, realtime, and worker.
 
 ## Examples
@@ -38,6 +39,16 @@ helm template opencord charts/opencord -f charts/opencord/examples/single-node-v
 `production-values.yaml` expects external production dependencies.
 `vultr-values.yaml` models OpenCord Cloud on Vultr with self-hosted external TimescaleDB, external Redis-compatible cache, Vultr Object Storage, LiveKit, TURN, ingress, TLS, and HPA enabled.
 `single-node-values.yaml` is for evaluation and renders bundled TimescaleDB plus Valkey.
+
+Custom domains can be added to the same API/realtime ingress:
+
+```yaml
+customDomains:
+  enabled: true
+  hosts:
+    - customer.example.com
+  tlsSecretName: opencord-custom-domains-tls
+```
 
 ## Secrets
 

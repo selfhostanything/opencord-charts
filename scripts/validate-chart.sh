@@ -18,6 +18,12 @@ helm template opencord "${CHART_DIR}" \
 helm template opencord "${CHART_DIR}" \
   -f "${CHART_DIR}/examples/vultr-values.yaml" \
   > "${TMP_DIR}/vultr.yaml"
+helm template opencord "${CHART_DIR}" \
+  --set ingress.enabled=true \
+  --set customDomains.enabled=true \
+  --set customDomains.hosts[0]=customer.example.com \
+  --set customDomains.tlsSecretName=opencord-custom-domains-tls \
+  > "${TMP_DIR}/custom-domains.yaml"
 
 ruby - "${TMP_DIR}" <<'RUBY'
 require "yaml"
@@ -40,6 +46,7 @@ default = load_docs(File.join(tmp_dir, "default.yaml"))
 production = load_docs(File.join(tmp_dir, "production.yaml"))
 single_node = load_docs(File.join(tmp_dir, "single-node.yaml"))
 vultr = load_docs(File.join(tmp_dir, "vultr.yaml"))
+custom_domains = load_docs(File.join(tmp_dir, "custom-domains.yaml"))
 
 %w[api realtime worker].each do |component|
   assert("default chart must render #{component} Deployment") do
@@ -81,6 +88,20 @@ assert("vultr chart must render TLS ingress") do
     doc["kind"] == "Ingress" &&
       doc.dig("metadata", "name") == "opencord" &&
       doc.dig("spec", "tls").to_a.any?
+  end
+end
+
+assert("custom-domain chart values must render extra ingress host") do
+  custom_domains.any? do |doc|
+    doc["kind"] == "Ingress" &&
+      doc.dig("spec", "rules").to_a.any? { |rule| rule["host"] == "customer.example.com" }
+  end
+end
+
+assert("custom-domain chart values must render custom TLS secret") do
+  custom_domains.any? do |doc|
+    doc["kind"] == "Ingress" &&
+      doc.dig("spec", "tls").to_a.any? { |tls| tls["secretName"] == "opencord-custom-domains-tls" }
   end
 end
 RUBY

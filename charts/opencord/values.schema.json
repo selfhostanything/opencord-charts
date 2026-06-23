@@ -157,6 +157,18 @@
         },
         "tls": { "type": "array" }
       }
+    },
+    "customDomains": {
+      "type": "object",
+      "required": ["enabled", "hosts", "tlsSecretName"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "hosts": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "tlsSecretName": { "type": "string" }
+      }
     }
   },
   "definitions": {
