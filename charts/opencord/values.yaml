@@ -4,6 +4,7 @@ fullnameOverride: ""
 opencord:
   publicUrl: "https://chat.example.com"
   environment: "production"
+  allowedOrigins: []
 
 image:
   registry: "ghcr.io/selfhostanything"

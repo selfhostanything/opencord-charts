@@ -26,6 +26,7 @@ The `opencord` chart renders:
 - Ingress/TLS routing.
 - Optional custom-domain ingress hosts through `customDomains.hosts`.
 - HorizontalPodAutoscaler resources for API, realtime, and worker.
+- Explicit browser allowed-origin config through `opencord.allowedOrigins`.
 
 ## Examples
 
@@ -48,6 +49,16 @@ customDomains:
   hosts:
     - customer.example.com
   tlsSecretName: opencord-custom-domains-tls
+```
+
+Self-hosted servers allow browser CORS only from `opencord.publicUrl` by
+default. Add the official hosted web client origin or other trusted origins
+explicitly:
+
+```yaml
+opencord:
+  allowedOrigins:
+    - https://app.opencord.example.com
 ```
 
 ## Secrets

@@ -8,7 +8,11 @@
       "required": ["publicUrl", "environment"],
       "properties": {
         "publicUrl": { "type": "string", "minLength": 1 },
-        "environment": { "type": "string", "minLength": 1 }
+        "environment": { "type": "string", "minLength": 1 },
+        "allowedOrigins": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
       }
     },
     "image": {

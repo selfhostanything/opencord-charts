@@ -38,6 +38,10 @@ def names(docs, kind)
   docs.select { |doc| doc["kind"] == kind }.map { |doc| doc.dig("metadata", "name") }
 end
 
+def resource(docs, kind, name)
+  docs.find { |doc| doc["kind"] == kind && doc.dig("metadata", "name") == name }
+end
+
 def assert(message)
   raise message unless yield
 end
@@ -59,6 +63,11 @@ end
 
 assert("production chart must render an Ingress") do
   names(production, "Ingress").include?("opencord")
+end
+
+assert("default chart must expose explicit CORS allowed-origin config") do
+  resource(default, "ConfigMap", "opencord-config")
+    &.dig("data", "OPENCORD_ALLOWED_ORIGINS") == ""
 end
 
 assert("single-node chart must render bundled TimescaleDB StatefulSet") do

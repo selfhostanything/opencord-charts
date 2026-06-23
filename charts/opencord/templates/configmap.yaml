@@ -7,6 +7,7 @@ metadata:
 data:
   OPENCORD_ENV: {{ .Values.opencord.environment | quote }}
   OPENCORD_PUBLIC_URL: {{ .Values.opencord.publicUrl | quote }}
+  OPENCORD_ALLOWED_ORIGINS: {{ join "," .Values.opencord.allowedOrigins | quote }}
   OPENCORD_ENVIRONMENT: {{ .Values.opencord.environment | quote }}
   S3_BUCKET: {{ .Values.objectStorage.bucket | quote }}
   S3_ENDPOINT: {{ .Values.objectStorage.endpoint | quote }}
