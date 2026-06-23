@@ -6,7 +6,10 @@ Rules for agents working in `opencord-charts`.
 - Use Helm CLI for chart generation and validation.
 - Run `scripts/validate-chart.sh` after chart changes.
 - Do not put secrets in values files.
-- Keep the bundled/evaluation database image pinned to `timescale/timescaledb:2.28.0-pg18`.
+- Keep the bundled/evaluation database image pinned to `timescale/timescaledb:2.28.1-pg18-oss`.
+- Do not use Docker `latest` tags. Prefer major.minor tags that float patch
+  updates where the image publishes them; use explicit release/date tags for
+  images that do not publish stable major.minor tags.
 - Keep production examples on external TimescaleDB, external Valkey-compatible cache, and external S3-compatible object storage.
 - Treat `charts/opencord/examples/single-node-values.yaml` as evaluation-only when bundled dependencies are enabled.
 - Do not move chart source into the server or clients repos.

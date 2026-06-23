@@ -36,7 +36,7 @@
           "required": ["repository", "tag"],
           "properties": {
             "repository": { "const": "timescale/timescaledb" },
-            "tag": { "const": "2.28.0-pg18" }
+            "tag": { "const": "2.28.1-pg18-oss" }
           }
         },
         "external": { "$ref": "#/definitions/externalUrlSecret" },

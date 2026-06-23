@@ -78,12 +78,12 @@ assert("single-node chart must render bundled Valkey StatefulSet") do
   names(single_node, "StatefulSet").include?("opencord-valkey")
 end
 
-assert("single-node chart must pin TimescaleDB image to 2.28.0-pg18") do
+assert("single-node chart must pin TimescaleDB image to 2.28.1-pg18-oss") do
   single_node.any? do |doc|
     doc["kind"] == "StatefulSet" &&
       doc.dig("metadata", "name") == "opencord-timescaledb" &&
       doc.dig("spec", "template", "spec", "containers").to_a.any? do |container|
-        container["image"] == "timescale/timescaledb:2.28.0-pg18"
+        container["image"] == "timescale/timescaledb:2.28.1-pg18-oss"
       end
   end
 end
