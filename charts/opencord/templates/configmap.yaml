@@ -20,7 +20,6 @@ data:
   SEARCH_URL: {{ .Values.search.url | quote }}
   OPENCORD_LIVEKIT_URL: {{ .Values.livekit.externalUrl | quote }}
   OPENCORD_MEDIA_REGION: {{ .Values.livekit.mediaRegion | quote }}
-  OPENCORD_MEDIA_TOKEN_TTL_SECONDS: {{ .Values.livekit.mediaTokenTtlSeconds | quote }}
   TURN_URLS: {{ join "," .Values.turn.urls | quote }}
   TURN_REALM: {{ .Values.turn.realm | quote }}
   TURN_MODE: {{ .Values.turn.mode | quote }}

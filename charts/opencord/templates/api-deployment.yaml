@@ -30,6 +30,7 @@ spec:
               containerPort: {{ .Values.api.containerPort }}
           {{- include "opencord.configEnvFrom" . | nindent 10 }}
           env:
+            {{- include "opencord.mediaEnv" . | nindent 12 }}
             {{- include "opencord.databaseEnv" . | nindent 12 }}
             {{- include "opencord.valkeyEnv" . | nindent 12 }}
             {{- include "opencord.objectStorageEnv" . | nindent 12 }}

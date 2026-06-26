@@ -134,6 +134,14 @@ VALKEY_URL env entry.
 {{- end }}
 
 {{/*
+Media non-secret env entries.
+*/}}
+{{- define "opencord.mediaEnv" -}}
+- name: OPENCORD_MEDIA_TOKEN_TTL_SECONDS
+  value: {{ .Values.livekit.mediaTokenTtlSeconds | quote }}
+{{- end }}
+
+{{/*
 Object storage secret env entries.
 */}}
 {{- define "opencord.objectStorageEnv" -}}

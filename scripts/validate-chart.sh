@@ -100,7 +100,6 @@ config = resource(default, "ConfigMap", "opencord-config")
   SCYLLA_KEYSPACE
   OPENCORD_LIVEKIT_URL
   OPENCORD_MEDIA_REGION
-  OPENCORD_MEDIA_TOKEN_TTL_SECONDS
   OPENCORD_OTEL_ENABLED
   OPENCORD_OTEL_ENDPOINT
   OPENCORD_OTEL_SERVICE_NAME
@@ -159,6 +158,21 @@ assert("realtime deployment must receive DATABASE_URL") do
   database_env = env_var(realtime || {}, "DATABASE_URL")
 
   database_env&.dig("valueFrom", "secretKeyRef", "key") == "DATABASE_URL"
+end
+
+%w[
+  opencord-api:api
+  opencord-realtime:realtime
+  opencord-worker:worker
+].each do |deployment_and_container|
+  deployment_name, container_name = deployment_and_container.split(":")
+
+  assert("#{deployment_name} must receive non-secret media token TTL env") do
+    container = container_for(default, deployment_name, container_name)
+    ttl_env = env_var(container || {}, "OPENCORD_MEDIA_TOKEN_TTL_SECONDS")
+
+    ttl_env&.dig("value") == "600"
+  end
 end
 
 assert("worker deployment must expose its health port") do

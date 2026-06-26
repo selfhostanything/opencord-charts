@@ -45,10 +45,15 @@ SCYLLA_CONTACT_POINTS
 SCYLLA_KEYSPACE
 S3_ENDPOINT
 OPENCORD_LIVEKIT_URL
+OPENCORD_MEDIA_REGION
 OPENCORD_OTEL_ENABLED
 OPENCORD_LOG_FORMAT
 OPENCORD_METRICS_PROMETHEUS_ENABLED
 ```
+
+`OPENCORD_MEDIA_TOKEN_TTL_SECONDS` is rendered as a direct non-secret
+container env var instead of a ConfigMap key because security scanners treat any
+ConfigMap key containing `TOKEN` as secret-like.
 
 `DATABASE_URL`, `VALKEY_URL`, object storage credentials, LiveKit credentials,
 TURN credentials, and app secrets are read from Kubernetes Secrets.
