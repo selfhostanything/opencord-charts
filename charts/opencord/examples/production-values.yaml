@@ -58,6 +58,15 @@ valkey:
   bundled:
     enabled: false
 
+kafka:
+  bootstrapServers:
+    - "kafka.chat.example.com:9092"
+
+scylla:
+  contactPoints:
+    - "scylla.chat.example.com:9042"
+  keyspace: "opencord"
+
 objectStorage:
   provider: "s3"
   bucket: "opencord-production"
@@ -67,6 +76,8 @@ objectStorage:
 livekit:
   enabled: true
   externalUrl: "https://livekit.chat.example.com"
+  mediaRegion: "production"
+  mediaTokenTtlSeconds: 600
   existingSecret: "opencord-livekit"
 
 turn:
@@ -78,6 +89,17 @@ turn:
     - "turns:turn.chat.example.com:5349?transport=tcp"
   existingSecret: "opencord-turn"
   realm: "chat.example.com"
+
+observability:
+  otel:
+    enabled: true
+    endpoint: "http://otel-collector.observability:4317"
+    serviceName: "opencord-server"
+  log:
+    format: "json"
+    filter: "opencord_server=info,tower_http=info,info"
+  metrics:
+    prometheusEnabled: true
 
 ingress:
   enabled: true

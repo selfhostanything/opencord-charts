@@ -21,10 +21,37 @@ helm template opencord charts/opencord -f charts/opencord/examples/single-node-v
 
 `production-values.yaml` expects external production dependencies.
 `vultr-values.yaml` models OpenCord Cloud on Vultr with self-hosted external
-TimescaleDB, external Valkey-compatible cache, Vultr Object Storage, LiveKit,
-TURN, ingress, TLS, and HPA enabled.
+TimescaleDB, external Valkey-compatible cache, external Kafka, external
+ScyllaDB, Vultr Object Storage, LiveKit, TURN, ingress, TLS, OTEL-ready
+observability, and HPA enabled.
 `single-node-values.yaml` is for evaluation and renders bundled TimescaleDB plus
-Valkey.
+Valkey. Kafka and ScyllaDB must still be provisioned separately for the current
+backend architecture.
+
+## Backend Services
+
+The chart follows the current Rust backend split:
+
+- `api` listens on `OPENCORD_API_ADDR` and serves HTTP API traffic.
+- `realtime` listens on `OPENCORD_REALTIME_ADDR` and serves gateway traffic.
+- `worker` listens on `OPENCORD_WORKER_ADDR` for health checks and background
+  worker runtime.
+
+Shared backend configuration is rendered through `opencord-config`:
+
+```text
+KAFKA_BOOTSTRAP_SERVERS
+SCYLLA_CONTACT_POINTS
+SCYLLA_KEYSPACE
+S3_ENDPOINT
+OPENCORD_LIVEKIT_URL
+OPENCORD_OTEL_ENABLED
+OPENCORD_LOG_FORMAT
+OPENCORD_METRICS_PROMETHEUS_ENABLED
+```
+
+`DATABASE_URL`, `VALKEY_URL`, object storage credentials, LiveKit credentials,
+TURN credentials, and app secrets are read from Kubernetes Secrets.
 
 ## Custom Domains
 
@@ -57,7 +84,7 @@ chart:
 opencord-database: DATABASE_URL
 opencord-valkey: VALKEY_URL
 opencord-s3: S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
-opencord-livekit: LIVEKIT_API_KEY, LIVEKIT_API_SECRET
+opencord-livekit: OPENCORD_LIVEKIT_API_KEY, OPENCORD_LIVEKIT_API_SECRET
 opencord-turn: TURN_USERNAME, TURN_CREDENTIAL, TURN_SHARED_SECRET
 opencord-app: SESSION_SECRET, SMTP_URL
 ```

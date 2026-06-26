@@ -10,3 +10,21 @@
 {{- if and (not .Values.valkey.external.enabled) (not .Values.valkey.bundled.enabled) -}}
 {{- fail "one valkey mode must be enabled: external or bundled" -}}
 {{- end -}}
+{{- if not .Values.kafka.bootstrapServers -}}
+{{- fail "kafka.bootstrapServers must contain at least one bootstrap server" -}}
+{{- end -}}
+{{- if not .Values.scylla.contactPoints -}}
+{{- fail "scylla.contactPoints must contain at least one contact point" -}}
+{{- end -}}
+{{- if not .Values.scylla.keyspace -}}
+{{- fail "scylla.keyspace must not be empty" -}}
+{{- end -}}
+{{- if and .Values.livekit.enabled (not .Values.livekit.externalUrl) -}}
+{{- fail "livekit.externalUrl is required when livekit.enabled is true" -}}
+{{- end -}}
+{{- if and .Values.livekit.enabled (not .Values.livekit.existingSecret) -}}
+{{- fail "livekit.existingSecret is required when livekit.enabled is true" -}}
+{{- end -}}
+{{- if and .Values.ingress.enabled (not .Values.ingress.hosts) -}}
+{{- fail "ingress.hosts must contain at least one host when ingress.enabled is true" -}}
+{{- end -}}

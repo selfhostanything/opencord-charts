@@ -6,6 +6,15 @@ database:
     enabled: true
     urlSecretName: "opencord-database"
 
+kafka:
+  bootstrapServers:
+    - "kafka.chat.example.com:9092"
+
+scylla:
+  contactPoints:
+    - "scylla.chat.example.com:9042"
+  keyspace: "opencord"
+
 objectStorage:
   provider: "s3"
   bucket: "opencord"

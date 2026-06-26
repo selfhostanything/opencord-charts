@@ -16,13 +16,16 @@ The `opencord` chart renders:
 - Ingress and TLS routing.
 - HorizontalPodAutoscaler resources.
 - External TimescaleDB/PostgreSQL and Valkey-compatible cache wiring.
+- External Kafka event queue and ScyllaDB contact-point wiring.
 - S3-compatible object storage configuration.
 - LiveKit and TURN/coturn configuration.
+- Optional OTEL, structured log, and Prometheus metrics configuration.
 - Optional bundled TimescaleDB and Valkey for evaluation installs.
 - Custom-domain ingress hosts for customer domains.
 
-Production installs should use external database, cache, media, and object
-storage services. Bundled dependencies are intended for evaluation only.
+Production installs should use external database, cache, queue, ScyllaDB, media,
+and object storage services. Bundled TimescaleDB and Valkey are intended for
+evaluation only.
 
 ## Quick Start
 

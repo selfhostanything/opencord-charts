@@ -176,12 +176,12 @@ LiveKit secret env entries.
 */}}
 {{- define "opencord.livekitEnv" -}}
 {{- if and .Values.livekit.enabled .Values.livekit.existingSecret }}
-- name: LIVEKIT_API_KEY
+- name: OPENCORD_LIVEKIT_API_KEY
   valueFrom:
     secretKeyRef:
       name: {{ .Values.livekit.existingSecret | quote }}
       key: {{ .Values.livekit.apiKeyKey | quote }}
-- name: LIVEKIT_API_SECRET
+- name: OPENCORD_LIVEKIT_API_SECRET
   valueFrom:
     secretKeyRef:
       name: {{ .Values.livekit.existingSecret | quote }}

@@ -1,7 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
   "type": "object",
-  "required": ["opencord", "image", "database", "valkey", "objectStorage"],
+  "required": [
+    "opencord",
+    "image",
+    "api",
+    "realtime",
+    "worker",
+    "database",
+    "valkey",
+    "kafka",
+    "scylla",
+    "objectStorage",
+    "livekit",
+    "turn",
+    "observability",
+    "ingress",
+    "customDomains"
+  ],
   "properties": {
     "opencord": {
       "type": "object",
@@ -26,7 +42,7 @@
     },
     "api": { "$ref": "#/definitions/workloadWithService" },
     "realtime": { "$ref": "#/definitions/workloadWithService" },
-    "worker": { "$ref": "#/definitions/workload" },
+    "worker": { "$ref": "#/definitions/workloadWithPort" },
     "database": {
       "type": "object",
       "required": ["image", "external", "bundled"],
@@ -85,6 +101,29 @@
         }
       }
     },
+    "kafka": {
+      "type": "object",
+      "required": ["bootstrapServers"],
+      "properties": {
+        "bootstrapServers": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "scylla": {
+      "type": "object",
+      "required": ["contactPoints", "keyspace"],
+      "properties": {
+        "contactPoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "keyspace": { "type": "string", "minLength": 1 }
+      }
+    },
     "objectStorage": {
       "type": "object",
       "required": ["provider", "bucket", "existingSecret"],
@@ -99,10 +138,12 @@
     },
     "livekit": {
       "type": "object",
-      "required": ["enabled", "externalUrl", "existingSecret"],
+      "required": ["enabled", "externalUrl", "mediaRegion", "mediaTokenTtlSeconds", "existingSecret"],
       "properties": {
         "enabled": { "type": "boolean" },
         "externalUrl": { "type": "string" },
+        "mediaRegion": { "type": "string", "minLength": 1 },
+        "mediaTokenTtlSeconds": { "type": "integer", "minimum": 60 },
         "existingSecret": { "type": "string" },
         "apiKeyKey": { "type": "string", "minLength": 1 },
         "apiSecretKey": { "type": "string", "minLength": 1 }
@@ -120,12 +161,45 @@
         },
         "existingSecret": { "type": "string" },
         "realm": { "type": "string" },
+        "usernameKey": { "type": "string", "minLength": 1 },
+        "credentialKey": { "type": "string", "minLength": 1 },
+        "sharedSecretKey": { "type": "string", "minLength": 1 },
         "relayPortRange": {
           "type": "object",
           "required": ["min", "max"],
           "properties": {
             "min": { "type": "integer", "minimum": 1, "maximum": 65535 },
             "max": { "type": "integer", "minimum": 1, "maximum": 65535 }
+          }
+        }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "required": ["otel", "log", "metrics"],
+      "properties": {
+        "otel": {
+          "type": "object",
+          "required": ["enabled", "endpoint", "serviceName"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "endpoint": { "type": "string" },
+            "serviceName": { "type": "string", "minLength": 1 }
+          }
+        },
+        "log": {
+          "type": "object",
+          "required": ["format", "filter"],
+          "properties": {
+            "format": { "type": "string", "enum": ["text", "json"] },
+            "filter": { "type": "string", "minLength": 1 }
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "required": ["prometheusEnabled"],
+          "properties": {
+            "prometheusEnabled": { "type": "boolean" }
           }
         }
       }
@@ -211,13 +285,24 @@
     },
     "workloadWithService": {
       "allOf": [
+        { "$ref": "#/definitions/workloadWithPort" },
+        {
+          "type": "object",
+          "required": ["servicePort"],
+          "properties": {
+            "servicePort": { "type": "integer", "minimum": 1, "maximum": 65535 }
+          }
+        }
+      ]
+    },
+    "workloadWithPort": {
+      "allOf": [
         { "$ref": "#/definitions/workload" },
         {
           "type": "object",
-          "required": ["containerPort", "servicePort"],
+          "required": ["containerPort"],
           "properties": {
-            "containerPort": { "type": "integer", "minimum": 1, "maximum": 65535 },
-            "servicePort": { "type": "integer", "minimum": 1, "maximum": 65535 }
+            "containerPort": { "type": "integer", "minimum": 1, "maximum": 65535 }
           }
         }
       ]

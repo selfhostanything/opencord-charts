@@ -33,6 +33,15 @@ valkey:
       size: 5Gi
       storageClassName: ""
 
+kafka:
+  bootstrapServers:
+    - "kafka.opencord.svc.cluster.local:9092"
+
+scylla:
+  contactPoints:
+    - "scylladb.opencord.svc.cluster.local:9042"
+  keyspace: "opencord"
+
 objectStorage:
   provider: "s3"
   bucket: "opencord"

@@ -25,6 +25,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.worker.containerPort }}
           {{- include "opencord.configEnvFrom" . | nindent 10 }}
           env:
             {{- include "opencord.databaseEnv" . | nindent 12 }}
@@ -33,5 +36,13 @@ spec:
             {{- include "opencord.appSecretEnv" . | nindent 12 }}
             {{- include "opencord.livekitEnv" . | nindent 12 }}
             {{- include "opencord.turnEnv" . | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}

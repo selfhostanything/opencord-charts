@@ -2,7 +2,7 @@ apiVersion: v2
 name: opencord
 description: OpenCord self-hosted server workloads
 type: application
-version: 0.2.0
+version: 0.3.0
 appVersion: "0.0.0-dev"
 home: https://github.com/selfhostanything/opencord-charts
 sources:

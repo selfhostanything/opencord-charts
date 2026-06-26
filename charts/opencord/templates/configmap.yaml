@@ -9,12 +9,26 @@ data:
   OPENCORD_PUBLIC_URL: {{ .Values.opencord.publicUrl | quote }}
   OPENCORD_ALLOWED_ORIGINS: {{ join "," .Values.opencord.allowedOrigins | quote }}
   OPENCORD_ENVIRONMENT: {{ .Values.opencord.environment | quote }}
+  OPENCORD_API_ADDR: {{ printf "0.0.0.0:%d" (int .Values.api.containerPort) | quote }}
+  OPENCORD_REALTIME_ADDR: {{ printf "0.0.0.0:%d" (int .Values.realtime.containerPort) | quote }}
+  OPENCORD_WORKER_ADDR: {{ printf "0.0.0.0:%d" (int .Values.worker.containerPort) | quote }}
+  KAFKA_BOOTSTRAP_SERVERS: {{ join "," .Values.kafka.bootstrapServers | quote }}
+  SCYLLA_CONTACT_POINTS: {{ join "," .Values.scylla.contactPoints | quote }}
+  SCYLLA_KEYSPACE: {{ .Values.scylla.keyspace | quote }}
   S3_BUCKET: {{ .Values.objectStorage.bucket | quote }}
   S3_ENDPOINT: {{ .Values.objectStorage.endpoint | quote }}
   SEARCH_URL: {{ .Values.search.url | quote }}
-  LIVEKIT_URL: {{ .Values.livekit.externalUrl | quote }}
+  OPENCORD_LIVEKIT_URL: {{ .Values.livekit.externalUrl | quote }}
+  OPENCORD_MEDIA_REGION: {{ .Values.livekit.mediaRegion | quote }}
+  OPENCORD_MEDIA_TOKEN_TTL_SECONDS: {{ .Values.livekit.mediaTokenTtlSeconds | quote }}
   TURN_URLS: {{ join "," .Values.turn.urls | quote }}
   TURN_REALM: {{ .Values.turn.realm | quote }}
   TURN_MODE: {{ .Values.turn.mode | quote }}
   TURN_RELAY_PORT_MIN: {{ .Values.turn.relayPortRange.min | quote }}
   TURN_RELAY_PORT_MAX: {{ .Values.turn.relayPortRange.max | quote }}
+  OPENCORD_OTEL_ENABLED: {{ .Values.observability.otel.enabled | quote }}
+  OPENCORD_OTEL_ENDPOINT: {{ .Values.observability.otel.endpoint | quote }}
+  OPENCORD_OTEL_SERVICE_NAME: {{ .Values.observability.otel.serviceName | quote }}
+  OPENCORD_LOG_FORMAT: {{ .Values.observability.log.format | quote }}
+  OPENCORD_LOG_FILTER: {{ .Values.observability.log.filter | quote }}
+  OPENCORD_METRICS_PROMETHEUS_ENABLED: {{ .Values.observability.metrics.prometheusEnabled | quote }}

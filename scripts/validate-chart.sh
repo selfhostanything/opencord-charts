@@ -42,6 +42,25 @@ def resource(docs, kind, name)
   docs.find { |doc| doc["kind"] == kind && doc.dig("metadata", "name") == name }
 end
 
+def container_for(docs, deployment_name, container_name)
+  resource(docs, "Deployment", deployment_name)
+    &.dig("spec", "template", "spec", "containers")
+    .to_a
+    .find { |container| container["name"] == container_name }
+end
+
+def env_var(container, name)
+  container.fetch("env", []).find { |entry| entry["name"] == name }
+end
+
+def ingress_path_backend_services(ingress)
+  ingress
+    .dig("spec", "rules")
+    .to_a
+    .flat_map { |rule| rule.dig("http", "paths").to_a }
+    .map { |path| [path["path"], path.dig("backend", "service", "name")] }
+end
+
 def assert(message)
   raise message unless yield
 end
@@ -68,6 +87,42 @@ end
 assert("default chart must expose explicit CORS allowed-origin config") do
   resource(default, "ConfigMap", "opencord-config")
     &.dig("data", "OPENCORD_ALLOWED_ORIGINS") == ""
+end
+
+config = resource(default, "ConfigMap", "opencord-config")
+
+%w[
+  OPENCORD_API_ADDR
+  OPENCORD_REALTIME_ADDR
+  OPENCORD_WORKER_ADDR
+  KAFKA_BOOTSTRAP_SERVERS
+  SCYLLA_CONTACT_POINTS
+  SCYLLA_KEYSPACE
+  OPENCORD_LIVEKIT_URL
+  OPENCORD_MEDIA_REGION
+  OPENCORD_MEDIA_TOKEN_TTL_SECONDS
+  OPENCORD_OTEL_ENABLED
+  OPENCORD_OTEL_ENDPOINT
+  OPENCORD_OTEL_SERVICE_NAME
+  OPENCORD_LOG_FORMAT
+  OPENCORD_LOG_FILTER
+  OPENCORD_METRICS_PROMETHEUS_ENABLED
+].each do |key|
+  assert("default ConfigMap must render #{key}") do
+    config&.dig("data", key).is_a?(String)
+  end
+end
+
+assert("default ConfigMap must render Kafka bootstrap servers") do
+  config&.dig("data", "KAFKA_BOOTSTRAP_SERVERS") == "kafka:9092"
+end
+
+assert("default ConfigMap must render Scylla contact points") do
+  config&.dig("data", "SCYLLA_CONTACT_POINTS") == "scylladb:9042"
+end
+
+assert("default ConfigMap must bind worker on port 8082") do
+  config&.dig("data", "OPENCORD_WORKER_ADDR") == "0.0.0.0:8082"
 end
 
 assert("single-node chart must render bundled TimescaleDB StatefulSet") do
@@ -99,6 +154,37 @@ end
   end
 end
 
+assert("realtime deployment must receive DATABASE_URL") do
+  realtime = container_for(default, "opencord-realtime", "realtime")
+  database_env = env_var(realtime || {}, "DATABASE_URL")
+
+  database_env&.dig("valueFrom", "secretKeyRef", "key") == "DATABASE_URL"
+end
+
+assert("worker deployment must expose its health port") do
+  worker = container_for(default, "opencord-worker", "worker")
+
+  worker&.fetch("ports", []).to_a.any? do |port|
+    port["name"] == "http" && port["containerPort"] == 8082
+  end
+end
+
+assert("worker deployment must probe /healthz") do
+  worker = container_for(default, "opencord-worker", "worker")
+
+  worker&.dig("readinessProbe", "httpGet", "path") == "/healthz" &&
+    worker&.dig("livenessProbe", "httpGet", "path") == "/healthz"
+end
+
+assert("production chart must render LiveKit backend env names") do
+  api = container_for(production, "opencord-api", "api")
+  livekit_key = env_var(api || {}, "OPENCORD_LIVEKIT_API_KEY")
+  livekit_secret = env_var(api || {}, "OPENCORD_LIVEKIT_API_SECRET")
+
+  livekit_key&.dig("valueFrom", "secretKeyRef", "key") == "OPENCORD_LIVEKIT_API_KEY" &&
+    livekit_secret&.dig("valueFrom", "secretKeyRef", "key") == "OPENCORD_LIVEKIT_API_SECRET"
+end
+
 assert("vultr chart must keep database external for self-hosted TimescaleDB") do
   names(vultr, "StatefulSet").none? { |name| name == "opencord-timescaledb" }
 end
@@ -109,6 +195,13 @@ assert("vultr chart must render TLS ingress") do
       doc.dig("metadata", "name") == "opencord" &&
       doc.dig("spec", "tls").to_a.any?
   end
+end
+
+assert("production ingress must route API and realtime services") do
+  path_services = ingress_path_backend_services(resource(production, "Ingress", "opencord"))
+
+  path_services.include?(["/", "opencord-api"]) &&
+    path_services.include?(["/gateway", "opencord-realtime"])
 end
 
 assert("custom-domain chart values must render extra ingress host") do
